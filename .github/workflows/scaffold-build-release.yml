@@ -87,7 +87,7 @@ jobs:
           echo "Replace with real PNG" > assets/placeholder_icon.txt
           
           # Create a new branch for scaffolded changes
-          BRANCH_NAME="scaffold/auto-generated-$(date +%s)"
+          BRANCH_NAME="scaffold/auto-generated-$(date +%Y%m%d-%H%M%S)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH_NAME"
@@ -102,7 +102,6 @@ jobs:
             echo "scaffolded=1" >> $GITHUB_OUTPUT
           else
             echo "Failed to push branch. Scaffolding aborted."
-            echo "scaffolded=0" >> $GITHUB_OUTPUT
             exit 1
           fi
         else
