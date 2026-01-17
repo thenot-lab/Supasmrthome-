@@ -101,9 +101,9 @@ REQ
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add main.py buildozer.spec requirements.txt assets || true
           git commit -m "scaffold: add minimal Kivy app and buildozer.spec" || true
-          echo "SCaffolded=1" >> $GITHUB_OUTPUT
+          echo "Scaffolded=1" >> $GITHUB_OUTPUT
         else
-          echo "SCaffolded=0" >> $GITHUB_OUTPUT
+          echo "Scaffolded=0" >> $GITHUB_OUTPUT
         fi
 
     - name: Install OS packages
