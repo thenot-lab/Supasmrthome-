@@ -113,7 +113,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        cat > /tmp/pr_body.md <<'EOFBODY'
+        cat > ${{ runner.temp }}/pr_body.md <<'EOFBODY'
         This PR was automatically created by the scaffold workflow.
         
         ## Changes
@@ -126,7 +126,7 @@ jobs:
         EOFBODY
         gh pr create \
           --title "Auto-scaffold: Add minimal Kivy app and buildozer config" \
-          --body-file /tmp/pr_body.md \
+          --body-file ${{ runner.temp }}/pr_body.md \
           --label "automated" \
           --label "scaffold" \
           --head "${{ steps.scaffold.outputs.branch_name }}" \
