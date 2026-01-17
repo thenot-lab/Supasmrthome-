@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Buildozer
+.buildozer/
+bin/
+*.apk
+*.aab
+
+# Android
+local.properties
+*.iml
+.gradle/
+.idea/
+
+# Temporary files
+*.log
+*.tmp
+/tmp/

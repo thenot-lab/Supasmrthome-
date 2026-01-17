@@ -1,0 +1,152 @@
+name: Scaffold, Build & Release APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  scaffold-build-release:
+    runs-on: ubuntu-latest
+    env:
+      PYVER: '3.9'
+      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+      APK_NAME: mobileidepro-debug.apk
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Scaffold minimal app if missing
+      id: scaffold
+      run: |
+        set -e
+        if [ ! -f main.py ] || [ ! -f buildozer.spec ]; then
+          echo "Scaffolding minimal mobile-ide app..."
+          cat > main.py <<'PY'
+        #!/usr/bin/env python3
+        from kivy.app import App
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.label import Label
+        from kivy.uix.button import Button
+        from kivy.core.window import Window
+
+        class MobileIDERoot(BoxLayout):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.orientation = 'vertical'
+                top = BoxLayout(size_hint_y=0.15)
+                top.add_widget(Button(text='Login (GitHub)', on_press=lambda x: None))
+                self.add_widget(top)
+                editor = Label(text='Code editor placeholder\nStart typing here...', halign='left')
+                self.add_widget(editor)
+                bottom = BoxLayout(size_hint_y=0.15)
+                bottom.add_widget(Button(text='Run', on_press=lambda x: None))
+                bottom.add_widget(Button(text='Cloud Sync', on_press=lambda x: None))
+                self.add_widget(bottom)
+
+        class MobileIDEApp(App):
+            def build(self):
+                Window.clearcolor = (0.12,0.12,0.13,1)
+                return MobileIDERoot()
+
+        if __name__ == '__main__':
+            MobileIDEApp().run()
+        PY
+          cat > buildozer.spec <<'INI'
+        [app]
+        title = Mobile IDE
+        package.name = mobileidepro
+        package.domain = com.thenotlab
+        source.dir = .
+        source.include_exts = py,png,jpg,kv,atlas,json,ttf
+        version = 1.0.0
+        requirements = python3,kivy,pygments,aiohttp,requests,Pillow
+        orientation = portrait
+        android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,ACCESS_NETWORK_STATE
+        android.minapi = 27
+        android.api = 33
+        android.ndk = 25b
+        icon.filename = assets/icon.png
+        INI
+          cat > requirements.txt <<'REQ'
+        kivy>=2.2.0
+        pygments>=2.15.0
+        aiohttp>=3.8.0
+        requests>=2.31.0
+        Pillow>=10.0.0
+        REQ
+          mkdir -p assets/fonts assets/themes src/ui src/copilot src/auth src/filesystem src/executor
+          echo "Replace with real PNG" > assets/placeholder_icon.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py buildozer.spec requirements.txt assets || true
+          git commit -m "scaffold: add minimal Kivy app and buildozer.spec" || true
+          echo "Scaffolded=1" >> $GITHUB_OUTPUT
+        else
+          echo "Scaffolded=0" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install OS packages
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y openjdk-11-jdk unzip wget libc6-i386 lib32stdc++6 lib32gcc1
+
+    - name: Install Android tools & SDK packages
+      run: |
+        set -e
+        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+        cd $RUNNER_TEMP
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest" || true
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
+    - name: Accept Android SDK licenses
+      run: |
+        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Buildozer, Cython and requirements
+      run: |
+        python -m pip install --upgrade pip wheel setuptools
+        pip install buildozer==1.4.2 cython==0.29.36
+        pip install -r requirements.txt || true
+
+    - name: Build APK with Buildozer
+      run: |
+        set -e
+        buildozer android clean || true
+        buildozer -v android debug
+        ls -la bin || true
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mobileide-apk
+        path: bin/*.apk
+
+    - name: Create Release and upload APK
+      uses: softprops/action-gh-release@v1
+      with:
+        files: bin/*.apk
+        tag_name: v${{ github.run_number }}
+        name: "mobile-ide Release v${{ github.run_number }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Output install link
+      run: |
+        APK_FILE=$(basename bin/*.apk)
+        INSTALL_URL="https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/${APK_FILE}"
+        echo "InstallURL=${INSTALL_URL}" >> $GITHUB_OUTPUT
+        echo "Download/Install: ${INSTALL_URL}"
