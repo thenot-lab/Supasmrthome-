@@ -28,9 +28,7 @@ jobs:
   scaffold-build-release:
     runs-on: ubuntu-latest
     env:
-      PYVER: '3.9'
       ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
-      APK_NAME: mobileidepro-debug.apk
 
     steps:
     - name: Checkout repository
