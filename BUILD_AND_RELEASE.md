@@ -107,7 +107,7 @@ REQ
     - name: Install OS packages
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y openjdk-11-jdk unzip wget libc6-i386 lib32stdc++6 lib32gcc1
+        sudo apt-get install -y openjdk-11-jdk unzip wget libc6-i386 lib32stdc++6 lib32gcc-s1 || sudo apt-get install -y lib32gcc1
 
     - name: Install Android tools & SDK packages
       run: |
