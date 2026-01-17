@@ -113,21 +113,20 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        PR_BODY=$(cat <<'EOF'
+        cat > /tmp/pr_body.md <<'EOFBODY'
         This PR was automatically created by the scaffold workflow.
         
         ## Changes
         - Added main.py with minimal Kivy app structure
-        - Added buildozer.spec for Android build configuration
+        - Added buildozer.spec for Android build configuration  
         - Added requirements.txt with Python dependencies
         - Created initial directory structure for assets and source code
         
         Please review and merge to proceed with the build process.
-        EOF
-        )
+        EOFBODY
         gh pr create \
           --title "Auto-scaffold: Add minimal Kivy app and buildozer config" \
-          --body "$PR_BODY" \
+          --body-file /tmp/pr_body.md \
           --label "automated" \
           --label "scaffold" \
           --head "${{ steps.scaffold.outputs.branch_name }}" \
