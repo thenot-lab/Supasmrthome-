@@ -89,7 +89,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,ACCE
 android.minapi = 27
 android.api = 33
 android.ndk = 25b
-icon.filename = assets/icon.png
+# icon.filename = assets/icon.png
 INI
           cat > requirements.txt <<'REQ'
 kivy>=2.2.0
@@ -129,7 +129,7 @@ REQ
         yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
@@ -147,7 +147,7 @@ REQ
         ls -la bin || true
 
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: mobileide-apk
         path: bin/*.apk
