@@ -93,11 +93,18 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           git add main.py buildozer.spec requirements.txt assets || true
           git commit -m "scaffold: add minimal Kivy app and buildozer.spec" || true
-          git push origin "$BRANCH_NAME"
           
-          # Save branch name for PR creation
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "scaffolded=1" >> $GITHUB_OUTPUT
+          # Push branch with error handling
+          if git push origin "$BRANCH_NAME"; then
+            echo "Successfully pushed branch $BRANCH_NAME"
+            # Save branch name for PR creation
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            echo "scaffolded=1" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to push branch. Scaffolding aborted."
+            echo "scaffolded=0" >> $GITHUB_OUTPUT
+            exit 1
+          fi
         else
           echo "scaffolded=0" >> $GITHUB_OUTPUT
         fi
@@ -107,9 +114,8 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh pr create \
-          --title "Auto-scaffold: Add minimal Kivy app and buildozer config" \
-          --body "This PR was automatically created by the scaffold workflow.
+        PR_BODY=$(cat <<'EOF'
+        This PR was automatically created by the scaffold workflow.
         
         ## Changes
         - Added main.py with minimal Kivy app structure
@@ -117,7 +123,12 @@ jobs:
         - Added requirements.txt with Python dependencies
         - Created initial directory structure for assets and source code
         
-        Please review and merge to proceed with the build process." \
+        Please review and merge to proceed with the build process.
+        EOF
+        )
+        gh pr create \
+          --title "Auto-scaffold: Add minimal Kivy app and buildozer config" \
+          --body "$PR_BODY" \
           --label "automated" \
           --label "scaffold" \
           --head "${{ steps.scaffold.outputs.branch_name }}" \
