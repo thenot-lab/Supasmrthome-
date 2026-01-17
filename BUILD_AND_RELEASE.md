@@ -18,6 +18,8 @@ Save as BUILD_AND_RELEASE.md in the repo root (or paste into an agent). This sin
 ## 3) Minimal/Scaffold GitHub Actions workflow
 - Create .github/workflows/scaffold-build-release.yml with the exact contents below. This workflow will:
   - Scaffold a minimal Kivy app if main.py/buildozer.spec missing
+  - Create a pull request with the scaffolded files (does NOT push directly to main)
+  - After PR is merged, subsequent runs will build the APK
   - Install Android SDK tools, Buildozer, build the APK
   - Create a GitHub Release and upload the APK
   - Emit a direct download URL for the APK
@@ -30,6 +32,7 @@ See `.github/workflows/scaffold-build-release.yml` for the complete workflow.
   git add . && git commit -m "Add workflow" && git push origin main
   ```
 - Or run Actions → Scaffold, Build & Release APK → Run workflow (workflow_dispatch).
+- **Note**: If the workflow needs to scaffold files (first run), it will create a pull request instead of building immediately. Review and merge the PR, then trigger the workflow again to build the APK.
 
 ## 5) After the workflow completes
 - Open the workflow run; view step "Output install link" or check the job summary for:
