@@ -104,24 +104,24 @@ jobs:
 
     - name: Create Pull Request for scaffolded files
       if: steps.scaffold.outputs.scaffolded == '1'
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ steps.scaffold.outputs.branch_name }}
-        title: "Auto-scaffold: Add minimal Kivy app and buildozer config"
-        body: |
-          This PR was automatically created by the scaffold workflow.
-          
-          ## Changes
-          - Added `main.py` with minimal Kivy app structure
-          - Added `buildozer.spec` for Android build configuration
-          - Added `requirements.txt` with Python dependencies
-          - Created initial directory structure for assets and source code
-          
-          Please review and merge to proceed with the build process.
-        labels: |
-          automated
-          scaffold
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh pr create \
+          --title "Auto-scaffold: Add minimal Kivy app and buildozer config" \
+          --body "This PR was automatically created by the scaffold workflow.
+        
+        ## Changes
+        - Added main.py with minimal Kivy app structure
+        - Added buildozer.spec for Android build configuration
+        - Added requirements.txt with Python dependencies
+        - Created initial directory structure for assets and source code
+        
+        Please review and merge to proceed with the build process." \
+          --label "automated" \
+          --label "scaffold" \
+          --head "${{ steps.scaffold.outputs.branch_name }}" \
+          --base main
 
     - name: Install OS packages
       if: steps.scaffold.outputs.scaffolded != '1'
