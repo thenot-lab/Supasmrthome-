@@ -1,0 +1,17 @@
+{
+  "name": "Copilot 365 Agent Build Environment",
+  "dockerFile": "../Dockerfile",
+  "runArgs": [
+    "--network=none",
+    "--cap-add=SYS_ADMIN"
+  ],
+  "workspaceFolder": "/opt/copilot-365-agent",
+  "postCreateCommand": "chmod +x /opt/copilot-365-agent/build.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools"
+      ]
+    }
+  }
+}
