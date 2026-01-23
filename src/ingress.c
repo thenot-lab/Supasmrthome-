@@ -10,12 +10,6 @@ int main(int argc, char *argv[]) {
     printf("Copilot 365 Agent - Build %u\n", MUTATION_SEED);
     
     // Initialize all modules
-    extern void init_propagation(void);
-    extern void init_targeting(void);
-    extern void init_effect(void);
-    extern void init_conceal(void);
-    extern void init_persistence(void);
-    
     init_propagation();
     init_targeting();
     init_effect();

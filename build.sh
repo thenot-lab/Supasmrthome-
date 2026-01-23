@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Create build directory if it doesn't exist
+mkdir -p build
+
 # Random seed for mutation engine (if used for compile-time variation)
 MUTATION_SEED=$RANDOM
 
